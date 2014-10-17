@@ -1,60 +1,52 @@
-var config = require('./config')
+var _ = require('lodash')
 
-
-var userModule = {
-  models : require('./models'),
-  listen : require('./listen')(config),
-  //this will allow app global config overwrite
-  config : config,
+/**
+ * 该模块负责自动将 bus.data('respond') 中的数据输出到浏览器端。
+ * @module respond
+ */
+module.exports = {
+  deps: ['request','model', 'bus'],
   route : {
-    "/user/count" : function( req, res, next){
-      userModule.dep.model.models['user'].count().then(function(total){
-        res.json({count:total})
-      })
-    },
     "*" : {
-      "function" : function initSession(req,res,next){
-        //TODO only for dev
-        if( !req.session.user ){
-          userModule.dep.model.models['user'].count().then(function(total){
-            var skip = parseInt( total * Math.random())
-            userModule.dep.model.models['user'].find({limit:1,skip:skip}).then(function(users){
-//              console.log("====================setting session user===========", users[0].name)
-//              req.session.user = users[0]
-              next()
-            }).catch(function(err){
-              ZERO.error(err)
-              next()
-            })
-          })
-        }else{
-          next()
-        }
+      "function" :function respondHandler( req, res, next){
+//        if( req.isAgent && !req.isFirstAgent) return next && next()
 
+        ZERO.mlog("respond"," respond default handler take action","isAgent:",req.isAgent)
 
+        //must wait all result resolved!
+        req.bus.then(function(){
+          ZERO.mlog("respond","respond bus.then execute ")
+            var respond = req.bus.data('respond')
 
+            if( !respond ){
+              ZERO.mlog("respond"," NOTHING HAPPENED", req.bus._id )
+              res.status(404).send("404")
+            }else{
+              ZERO.mlog("respond"," <---------------begin to respond-------------->",respond.file,respond.page)
 
-        return
+              if( respond.file ){
+                return req.bus.fire('respond.file.before', respond).then(function(){
+                  res.sendFile( respond.file)
+                })
+              }else if( respond.page ){
+                return req.bus.fire('respond.page.before', respond).then(function() {
+                  res.render(respond.page, respond.data || {})
+                })
+              }else{
+                return req.bus.fire('respond.data.before', respond).then(function() {
+                  res.json(respond.data || {})
+                })
+              }
+            }
+        }).catch(function( err ){
+          ZERO.error("respond last handler error",err)
+          res.status(err.status || 500).json({errors: req.bus.$$error })
+        })
 
-//        if( req.session.user ){
-//          next()
-//        }else{
-//          //TODO only for dev
-//          userModule.dep.model.models['user'].find({limit:1}).then(function(users){
-//            req.session.user = users[0]
-//            next()
-//          }).catch(function(err){
-//            ZERO.error(err)
-//            next()
-//          })
-//        }
+//        if(req.isAgent) next&&next()
 
       },
-      "order" : {first:true}
+      order : {last:true}
     }
-
   }
 }
-
-module.exports = userModule
-
