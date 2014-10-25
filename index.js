@@ -1,4 +1,5 @@
-var _ = require('lodash')
+var _ = require('lodash'),
+  colors = require('colors')
 
 /**
  * 该模块负责自动将 bus.data('respond') 中的数据输出到浏览器端。
@@ -11,7 +12,7 @@ module.exports = {
       "function" :function respondHandler( req, res, next){
 //        if( req.isAgent && !req.isFirstAgent) return next && next()
 
-        ZERO.mlog("respond"," respond default handler take action","isAgent:",req.isAgent)
+        ZERO.mlog("respond","<====== respond default handler take action","isAgent:",req.isAgent)
 
         //must wait all result resolved!
         req.bus.then(function(){
@@ -22,18 +23,20 @@ module.exports = {
               ZERO.mlog("respond"," NOTHING HAPPENED", req.bus._id )
               res.status(404).send("404")
             }else{
-              ZERO.mlog("respond"," <---------------begin to respond-------------->",respond.file,respond.page)
 
               if( respond.file ){
                 return req.bus.fire('respond.file.before', respond).then(function(){
+                  ZERO.mlog("respond","file ======>".cyan,respond.file)
                   res.sendFile( respond.file)
                 })
               }else if( respond.page ){
                 return req.bus.fire('respond.page.before', respond).then(function() {
+                  ZERO.mlog("respond","page ======>".blue,respond.page)
                   res.render(respond.page, respond.data || {})
                 })
               }else{
                 return req.bus.fire('respond.data.before', respond).then(function() {
+                  ZERO.mlog("respond","data ======>".green,Object.keys(respond.data).join(","))
                   res.json(respond.data || {})
                 })
               }
