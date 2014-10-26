@@ -31,7 +31,7 @@ module.exports = {
                 })
               }else if( respond.page ){
                 return req.bus.fire('respond.page.before', respond).then(function() {
-                  ZERO.mlog("respond","page ======>".blue,respond.page)
+                  ZERO.mlog("respond","page ======>".blue,respond.page, JSON.stringify(Object.keys(respond.data)))
                   res.render(respond.page, respond.data || {})
                 })
               }else{
