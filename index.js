@@ -44,9 +44,6 @@ var respondModule = {
           logger.error("respond last handler error",err)
           res.status(err.status || 500).json({errors: req.bus.$$error })
         })
-
-//        if(req.isAgent) next&&next()
-
       },
       order : {last:true}
     }
