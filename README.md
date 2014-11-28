@@ -1,6 +1,6 @@
 # zero-respond #
 
-This module helps you handle respond when you use bus in your request handler.
+This module handles respond of request when you use bus in your request handler.
 
 ## Usage ##
 

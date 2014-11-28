@@ -1,7 +1,10 @@
 {
   "name": "zero-respond",
-  "version": "0.0.10",
-  "description": "zero module",
+  "version": "0.0.11",
+  "keywords": [
+    "zero module"
+  ],
+  "description": "This module handles respond of request when you use bus in your request handler.",
   "zero": {
     "dependencies": {
       "request": "^0.0.1",
